@@ -58,11 +58,3 @@ class PILThumbnailerImageField(ImageField):
             img.save(filename, optimize=1)
         except IOError:
             img.save(filename)
-
-
-
-if userena_settings.USERENA_MUGSHOT_CROP_APP == 'PIL':
-    ThumbnailerImageField = PILThumbnailerImageField
-
-elif userena_settings.USERENA_MUGSHOT_CROP_APP == 'easy_thumbnails':
-    from easy_thumbnails.fields import ThumbnailerImageField
