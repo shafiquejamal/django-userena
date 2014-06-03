@@ -155,12 +155,17 @@ def get_datetime_now():
     when ``USE_TZ`` in project's settings is True or False respectively.
     In older versions of Django it uses datetime.datetime.now().
 
+    For Django 1.6, need to use .utcnow()
+    See: https://docs.djangoproject.com/en/1.6/topics/i18n/timezones/#naive-and-aware-datetime-objects
     """
     try:
         from django.utils import timezone
         return timezone.now() # pragma: no cover
     except ImportError: # pragma: no cover
-        return datetime.datetime.now()
+        from django.utils.timezone import utc
+        now = datetime.datetime.utcnow().replace(tzinfo=utc)
+        # return datetime.datetime.now()
+        #
 
 # Django 1.5 compatibility utilities, providing support for custom User models.
 # Since get_user_model() causes a circular import if called when app models are
