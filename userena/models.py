@@ -14,6 +14,7 @@ from userena.utils import get_gravatar, generate_sha1, get_protocol, \
 import datetime
 from .mail import send_mail
 
+from django.utils.timezone import is_aware
 
 PROFILE_PERMISSIONS = (
             ('view_profile', 'Can view profile'),
@@ -188,6 +189,8 @@ class UserenaSignup(models.Model):
         """
         expiration_days = datetime.timedelta(days=userena_settings.USERENA_ACTIVATION_DAYS)
         expiration_date = self.user.date_joined + expiration_days
+        get_datetime_now_is_aware = is_aware(get_datetime_now())
+        expiration_date_is_aware = is_aware(expiration_date) 
         if self.activation_key == userena_settings.USERENA_ACTIVATED:
             return True
         if get_datetime_now() >= expiration_date:
