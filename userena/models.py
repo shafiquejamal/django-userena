@@ -200,6 +200,7 @@ class UserenaSignup(models.Model):
         if get_datetime_now() >= expiration_date:
             return True
         return False
+        
 
     def send_activation_email(self):
         """
