@@ -15,7 +15,7 @@ from userena.utils import get_gravatar, generate_sha1, get_protocol, \
 import datetime
 from .mail import send_mail
 
-from django.utils.timezone import is_aware
+from django.utils.timezone import is_aware, is_naive
 
 # See: https://stackoverflow.com/questions/7065164/how-to-make-an-unaware-datetime-timezone-aware-in-python
 import pytz # need to make aware datetime objects that are unaware (actually to match) 
@@ -194,7 +194,7 @@ class UserenaSignup(models.Model):
         """
         expiration_days = datetime.timedelta(days=userena_settings.USERENA_ACTIVATION_DAYS)
         expiration_date = self.user.date_joined + expiration_days 
-        if is_aware(get_datetime_now()):
+        if is_aware(get_datetime_now()) and is_naive(expiration_date):
             expiration_date = pytz.utc.localize(expiration_date) 
         if self.activation_key == userena_settings.USERENA_ACTIVATED:
             return True
