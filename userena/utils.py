@@ -162,10 +162,7 @@ def get_datetime_now():
         from django.utils import timezone
         return timezone.now() # pragma: no cover
     except ImportError: # pragma: no cover
-        from django.utils.timezone import utc
-        now = datetime.datetime.utcnow().replace(tzinfo=utc)
-        # return datetime.datetime.now()
-        #
+        return datetime.datetime.now()
 
 # Django 1.5 compatibility utilities, providing support for custom User models.
 # Since get_user_model() causes a circular import if called when app models are
