@@ -5,7 +5,8 @@ from django.contrib.sites.models import Site
 from django.db import models
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
-from easy_thumbnails.fields import ThumbnailerImageField
+# See: https://github.com/barszczmm/django-easy-userena/blob/master/userena/models.py
+from userena.fields import PILThumbnailerImageField as ThumbnailerImageField 
 from guardian.shortcuts import get_perms
 from userena import settings as userena_settings
 from userena.managers import UserenaManager, UserenaBaseProfileManager
