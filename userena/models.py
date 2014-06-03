@@ -16,6 +16,10 @@ from .mail import send_mail
 
 from django.utils.timezone import is_aware
 
+# See: https://stackoverflow.com/questions/7065164/how-to-make-an-unaware-datetime-timezone-aware-in-python
+import pytz # need to make aware datetime objects that are unaware 
+
+
 PROFILE_PERMISSIONS = (
             ('view_profile', 'Can view profile'),
 )
@@ -188,7 +192,7 @@ class UserenaSignup(models.Model):
 
         """
         expiration_days = datetime.timedelta(days=userena_settings.USERENA_ACTIVATION_DAYS)
-        expiration_date = self.user.date_joined + expiration_days
+        expiration_date = pytz.utc.localize(self.user.date_joined + expiration_days)
         get_datetime_now_is_aware = is_aware(get_datetime_now())
         expiration_date_is_aware = is_aware(expiration_date) 
         if self.activation_key == userena_settings.USERENA_ACTIVATED:
