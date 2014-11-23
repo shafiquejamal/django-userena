@@ -1,5 +1,6 @@
+from urlparse import urlparse, parse_qs
+
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.sites.models import Site
 from django.core import mail
 from django.conf import settings
 from django.test import TestCase
@@ -7,7 +8,7 @@ from django.test import TestCase
 from userena.models import UserenaSignup, upload_to_mugshot
 from userena import settings as userena_settings
 from userena.tests.profiles.models import Profile
-from userena.utils import get_user_model
+from userena.utils import get_user_model, get_user_profile
 
 import datetime, hashlib, re
 
@@ -32,7 +33,7 @@ class UserenaSignupModelTests(TestCase):
         """
         user = User.objects.get(pk=1)
         filename = 'my_avatar.png'
-        path = upload_to_mugshot(user.get_profile(), filename)
+        path = upload_to_mugshot(get_user_profile(user=user), filename)
 
         # Path should be changed from the original
         self.failIfEqual(filename, path)
@@ -197,25 +198,41 @@ class BaseProfileModelTest(TestCase):
         Test if the correct mugshot is returned when the user makes use of gravatar.
 
         """
-        template = '//www.gravatar.com/avatar/%(hash)s?s=%(size)s&d=%(default)s'
         profile = Profile.objects.get(pk=1)
 
         gravatar_hash = hashlib.md5(profile.user.email).hexdigest()
 
         # Test with the default settings
-        self.failUnlessEqual(profile.get_mugshot_url(),
-                             template % {'hash': gravatar_hash,
-                                         'size': userena_settings.USERENA_MUGSHOT_SIZE,
-                                         'default': userena_settings.USERENA_MUGSHOT_DEFAULT})
+        mugshot_url = profile.get_mugshot_url()
+        parsed = urlparse(mugshot_url)
+
+        self.failUnlessEqual(parsed.netloc, 'www.gravatar.com')
+        self.failUnlessEqual(parsed.path, '/avatar/' + gravatar_hash)
+        self.failUnlessEqual(
+            parse_qs(parsed.query),
+            parse_qs('s=%(size)s&d=%(default)s' % {
+                'size': userena_settings.USERENA_MUGSHOT_SIZE,
+                'default': userena_settings.USERENA_MUGSHOT_DEFAULT
+            })
+        )
 
         # Change userena settings
         userena_settings.USERENA_MUGSHOT_SIZE = 180
         userena_settings.USERENA_MUGSHOT_DEFAULT = '404'
 
-        self.failUnlessEqual(profile.get_mugshot_url(),
-                             template % {'hash': gravatar_hash,
-                                         'size': userena_settings.USERENA_MUGSHOT_SIZE,
-                                         'default': userena_settings.USERENA_MUGSHOT_DEFAULT})
+        # and test again
+        mugshot_url = profile.get_mugshot_url()
+        parsed = urlparse(mugshot_url)
+
+        self.failUnlessEqual(parsed.netloc, 'www.gravatar.com')
+        self.failUnlessEqual(parsed.path, '/avatar/' + gravatar_hash)
+        self.failUnlessEqual(
+            parse_qs(parsed.query),
+            parse_qs('s=%(size)s&d=%(default)s' % {
+                'size': userena_settings.USERENA_MUGSHOT_SIZE,
+                'default': userena_settings.USERENA_MUGSHOT_DEFAULT
+            })
+        )
 
         # Settings back to default
         userena_settings.USERENA_MUGSHOT_SIZE = 80
@@ -224,7 +241,7 @@ class BaseProfileModelTest(TestCase):
     def test_get_full_name_or_username(self):
         """ Test if the full name or username are returned correcly """
         user = User.objects.get(pk=1)
-        profile = user.get_profile()
+        profile = get_user_profile(user=user)
 
         # Profile #1 has a first and last name
         full_name = profile.get_full_name_or_username()

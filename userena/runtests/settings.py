@@ -3,6 +3,10 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 import os
+import sys
+
+import django
+
 settings_dir = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(settings_dir)
 
@@ -117,11 +121,14 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'guardian',
-    'south',
     'userena',
     'userena.contrib.umessages',
     'userena.tests.profiles',
 )
+
+if django.VERSION < (1, 7, 0):
+    # only older versions of django require south migrations
+    INSTALLED_APPS += ('south',)
 
 LOGGING = {
     'version': 1,
@@ -149,6 +156,3 @@ LOGGING = {
 
 # Needed for Django guardian
 ANONYMOUS_USER_ID = -1
-
-# Test runner
-TEST_RUNNER = 'django_coverage.coverage_runner.CoverageRunner'
