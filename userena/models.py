@@ -5,7 +5,8 @@ from django.contrib.sites.models import Site
 from django.db import models
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
-from easy_thumbnails.fields import ThumbnailerImageField
+# See: https://github.com/barszczmm/django-easy-userena/blob/master/userena/models.py
+from userena.fields import PILThumbnailerImageField as ThumbnailerImageField 
 from guardian.shortcuts import get_perms
 from userena import settings as userena_settings
 from userena.managers import UserenaManager, UserenaBaseProfileManager
@@ -14,7 +15,7 @@ from userena.utils import get_gravatar, generate_sha1, get_protocol, \
 import datetime
 from .mail import send_mail
 
-from django.utils.timezone import is_aware
+from django.utils.timezone import is_aware, is_naive
 
 # See: https://stackoverflow.com/questions/7065164/how-to-make-an-unaware-datetime-timezone-aware-in-python
 import pytz # need to make aware datetime objects that are unaware (actually to match) 
@@ -192,8 +193,11 @@ class UserenaSignup(models.Model):
 
         """
         expiration_days = datetime.timedelta(days=userena_settings.USERENA_ACTIVATION_DAYS)
-        expiration_date = self.user.date_joined + expiration_days 
-        if is_aware(get_datetime_now()):
+        expiration_date = self.user.date_joined + expiration_days
+        the_datetime_now = get_datetime_now()
+        get_datetime_now_is_aware = is_aware(the_datetime_now)
+        expiration_date_is_aware = is_aware(expiration_date)
+        if is_aware(the_datetime_now) and is_naive(expiration_date):
             expiration_date = pytz.utc.localize(expiration_date) 
         if self.activation_key == userena_settings.USERENA_ACTIVATED:
             return True
